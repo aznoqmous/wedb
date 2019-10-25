@@ -88,6 +88,9 @@ export default class Wedb{
   }
 
   addUrl(url){
+    url = url.split('?')[0]
+    url = url.split('#')[0]
+    if(url.split('.pdf').length > 1) return false;
     if(!this.urls.includes(url)) {
       this.bufferedUrls.push(url)
       this.urls.push(url)
