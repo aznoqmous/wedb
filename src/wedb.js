@@ -6,7 +6,12 @@ export default class Wedb{
       url: '', // entrypoint for crawl
       path: '', // base url for entities
       bannedElement: [], // selectors
-      crawlDepth: 1
+      crawlDepth: 1,
+
+      // callbacks
+      onAddUrl: null,
+      onRemoveUrl: null,
+      onContent: null
     })
     this.setConfig(config)
     this.init()
@@ -22,7 +27,6 @@ export default class Wedb{
     this.urls = []
     this.bufferedUrls = []
     this.entities = []
-    this.content = []
     this.fakedom = document.createElement('div')
     document.body.appendChild(this.fakedom)
     this.fakedom.style.display = 'none'
@@ -36,15 +40,13 @@ export default class Wedb{
       let html = req.json
       this.extractLinks(html)
       let content = this.extractContent(html)
-      this.content.push(content + '\n' + currentUrl)
-      // console.log(content, currentUrl)
+      content.url = url
+      this.entities.push(content)
     })
     .finally(()=>{
-      console.log(currentUrl, this.bufferedUrls.length)
       this.removeNextUrl()
       this.crawl()
     })
-    else console.log(this.content.join('\n____________________\n'))
   }
   get(url){
     return this.getScript.do({url: url})
@@ -65,7 +67,7 @@ export default class Wedb{
     bannedTags.map(tag => {
       tag.remove()
     })
-
+    let onContent = false
     for(let key in this.config.selectors){
       let selector = this.config.selectors[key]
       let extract = this.fakedom.querySelector(selector.selector)
@@ -76,9 +78,10 @@ export default class Wedb{
         contentValue.split(' ').map( word => { if(word.length) txt += ' '+word } )
         txt = txt.replace(/\n\:/g, ' :').replace(/\n /g, '\n').replace(/\n\n/g, '\n')
         content[key] = txt
+        onContent = true
       }
     }
-    if(content.title && content.price) document.body.innerHTML += content.title + ' ' + content.price + '<br>'
+    if(onContent && this.config.onContent) this.config.onContent(content)
 
     this.fakedom.innerHTML = ''
     return content;
@@ -88,6 +91,7 @@ export default class Wedb{
     if(!this.urls.includes(url)) {
       this.bufferedUrls.push(url)
       this.urls.push(url)
+      if(this.config.onAddUrl) this.config.onAddUrl(url)
     }
     else return false
   }
@@ -95,6 +99,8 @@ export default class Wedb{
     return this.bufferedUrls[0]
   }
   removeNextUrl(){
+    let removedUrl = this.bufferedUrls[0]
     this.bufferedUrls.splice(0, 1)
+    if(this.config.onRemoveUrl) this.config.onRemoveUrl(removedUrl)
   }
 }
