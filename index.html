@@ -6,36 +6,35 @@
     <script src="dist/main.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <style media="screen">
-      #pagesCrawl > * {
-        opacity: 0.5;
+      #urls {
+        text-align: center;
+        margin-bottom: 0.1rem;
+      }
+      #urls > * {
+        opacity: 0;
         transition: all 0.2s ease;
+        list-style: none;
       }
-      #pagesCrawl > .active {
-        opacity: 1;
-      }
-      #pagesCrawl > * {
-        display: none;
-      }
-      #pagesCrawl > .active:last-of-type,
-      #pagesCrawl > *:not(.active):nth-of-type(1),
-      #pagesCrawl > *:not(.active):nth-of-type(2){
-        display: block;
-      }
+      #urls > *:nth-child(1) { opacity: 0.1}
+      #urls > *:nth-child(2) { opacity: 0.2}
+      #urls > *:nth-child(3) { opacity: 0.3}
+      #urls > *:nth-child(4) { opacity: 0.4}
+      #urls > *:nth-child(5) { opacity: 0.5}
     </style>
   </head>
   <body>
     <div class="container">
       <h1>WeDB</h1>
       <h2>The web, inside your db</h2>
-      <input id="input" class="form-control" type="text" name="" value="" placeholder="Type in a URL and press ENTER to start crawling">
-      <div class="row">
-        <ul id="pagesCrawl" class="col-6">
-
-        </ul>
-        <ul id="entities" class="col-6">
-
-        </ul>
+      <div class="form-group">
+        <ul id="urls"></ul>
+        <input autofocus id="input" class="form-control" type="text" name="" value="" placeholder="Type in a URL and press ENTER to start crawling">
+        <div class="progress">
+          <div id="progress" class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
       </div>
+      <ul id="pagesCrawl" style="text-align: center"></ul>
+      <ul id="entities"></ul>
     </div>
   </body>
 </html>

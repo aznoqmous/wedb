@@ -5,13 +5,13 @@ export default class Wedb{
     this.setConfig({
       url: '', // entrypoint for crawl
       path: '', // base url for entities
-      bannedElement: [], // selectors
-      crawlDepth: 1,
-
       // callbacks
       onAddUrl: null,
       onRemoveUrl: null,
-      onContent: null
+      onContent: null,
+      onSuccess: null,
+      onError: null,
+      onFinally: null
     })
     this.setConfig(config)
     this.init()
@@ -40,12 +40,16 @@ export default class Wedb{
       let html = req.json
       this.extractLinks(html)
       let content = this.extractContent(html)
-      content.url = url
       this.entities.push(content)
+      if(this.config.onSuccess) this.config.onSuccess(req.config.datas.url)
+    })
+    .catch((req)=>{
+      if(this.config.onError) this.config.onError(req.config.datas.url)
     })
     .finally(()=>{
       this.removeNextUrl()
       this.crawl()
+      if(this.config.onFinally) this.config.onFinally(req.config.datas.url)
     })
   }
   get(url){
@@ -63,11 +67,6 @@ export default class Wedb{
   extractContent(html){
     this.fakedom.innerHTML = html
     let content = {}
-    let bannedTags = [...this.fakedom.querySelectorAll(this.config.bannedTags)]
-    bannedTags.map(tag => {
-      tag.remove()
-    })
-    let onContent = false
     for(let key in this.config.selectors){
       let selector = this.config.selectors[key]
       let extract = this.fakedom.querySelector(selector.selector)
@@ -78,16 +77,17 @@ export default class Wedb{
         contentValue.split(' ').map( word => { if(word.length) txt += ' '+word } )
         txt = txt.replace(/\n\:/g, ' :').replace(/\n /g, '\n').replace(/\n\n/g, '\n')
         content[key] = txt
-        onContent = true
+        content.url = this.getNextUrl()
       }
     }
-    if(onContent && this.config.onContent) this.config.onContent(content)
+    if(content.url && this.config.onContent) this.config.onContent(content)
 
     this.fakedom.innerHTML = ''
     return content;
   }
 
   addUrl(url){
+    console.log(url)
     url = url.split('?')[0]
     url = url.split('#')[0]
     if(url.split('.pdf').length > 1) return false;
@@ -98,7 +98,7 @@ export default class Wedb{
     }
     else return false
   }
-  getNextUrl(url){
+  getNextUrl(){
     return this.bufferedUrls[0]
   }
   removeNextUrl(){

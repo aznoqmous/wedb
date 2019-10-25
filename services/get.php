@@ -10,9 +10,10 @@ curl_setopt($curl, CURLOPT_FOLLOWLOCATION, TRUE);
 
 $res = curl_exec($curl);
 
-// get rid of link and scripts
+// get rid of links and scripts prevent imgs from loading
 $res = preg_replace("/<link.*?\/>/", '', $res);
 $res = preg_replace("/<script.*?\/script>/", '', $res);
+$res = preg_replace("/<style.*?\/style>/", '', $res);
 $res = preg_replace("/src/", "data-src", $res);
 
 if($res) echo json_encode($res);

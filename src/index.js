@@ -1,31 +1,46 @@
 import Wedb from './wedb.js'
 
 document.addEventListener('DOMContentLoaded', ()=>{
+  var start = Date.now()
 
   let w = new Wedb({
     selectors: {
       title: {
-        selector: 'div#page > div.columns-container > div.container#columns > div.row > div.center_column.col-xs-12.col-sm-12#center_column > div > div.primary_block.row > div.pb-center-column.col-xs-12.col-sm-4 > h1'
-      },
-      price: {
-        selector: 'div#page > div.columns-container > div.container#columns > div.row > div.center_column.col-xs-12.col-sm-12#center_column > div > div.primary_block.row > div.pb-right-column.col-xs-12.col-sm-4.col-md-3 > form#buy_block > div.box-info-product > div.content_prices.clearfix > div > p.our_price_display > span.price#our_price_display'
-      },
-      reference: {
-        selector: 'div#page > div.columns-container > div.container#columns > div.row > div.center_column.col-xs-12.col-sm-12#center_column > div > div.primary_block.row > div.pb-center-column.col-xs-12.col-sm-4 > p#product_reference > span.editable'
-      },
-      condition: {
-        selector: 'div#page > div.columns-container > div.container#columns > div.row > div.center_column.col-xs-12.col-sm-12#center_column > div > div.primary_block.row > div.pb-center-column.col-xs-12.col-sm-4 > p#product_condition > span.editable'
+        selector: 'title'
       },
       description: {
-        selector: 'div#page > div.columns-container > div.container#columns > div.row > div.center_column.col-xs-12.col-sm-12#center_column > div > div.primary_block.row > div.pb-center-column.col-xs-12.col-sm-4 > div#short_description_block > div.rte.align_justify#short_description_content > p'
+        selector: 'meta[type="description"]',
+        attr: 'content'
+      },
+      alt: {
+        selector: 'h1'
       }
     },
     bannedTags: 'script,link',
     onAddUrl: (url)=> {
-      pagesCrawl.innerHTML = `${w.urls.length - w.bufferedUrls.length} scannées / ${w.urls.length} découvertes <br> ${w.getNextUrl()}`
+      let ratio = ( w.urls.length - w.bufferedUrls.length ) / w.urls.length
+      progress.style.width = ratio * 100 + '%'
+      progress.innerHTML = Math.round(ratio * 100) + '%'
+      pagesCrawl.innerHTML = `${w.urls.length - w.bufferedUrls.length} pages crawled`
+      pagesCrawl.innerHTML += ` ${w.bufferedUrls.length} pages left`
+      pagesCrawl.innerHTML += ` ${w.urls.length} pages total <br>`
     },
     onRemoveUrl: (url)=>{
-      pagesCrawl.innerHTML = `${w.urls.length - w.bufferedUrls.length} scannées / ${w.urls.length} découvertes <br> ${w.getNextUrl()}`
+      let ratio = ( w.urls.length - w.bufferedUrls.length ) / w.urls.length
+      progress.style.width = ratio * 100 + '%'
+      progress.innerHTML = Math.round(ratio * 100) + '%'
+      pagesCrawl.innerHTML = `${w.urls.length - w.bufferedUrls.length} pages crawled`
+      pagesCrawl.innerHTML += `${w.bufferedUrls.length} pages left`
+      pagesCrawl.innerHTML += `${w.urls.length} pages total <br>`
+    },
+    onSuccess: (url)=>{
+      addUrlEl(url + ':)', 'text-success')
+    },
+    onError: (url)=>{
+      addUrlEl(url + ':(', 'text-danger')
+    },
+    onFinally: ()=>{
+      addUrl(w.getNextUrl()+'...')
     },
     onContent: (content)=>{
       let entity = ''
@@ -37,10 +52,20 @@ document.addEventListener('DOMContentLoaded', ()=>{
   })
 
   input.addEventListener('keyup', (e)=>{
-    if(e.key == "Enter") w.crawl(input.value)
+    if(e.key == "Enter") {
+      w.crawl(input.value)
+      start = Date.now()
+    }
   })
-  function generateIdFromUrl(url){
-    return url.split('.').join('-').split('/').join('_')
+
+  function addUrlEl(url, className){
+    let urlEl = document.createElement('li')
+    urlEl.className = 'small'
+    if(className) urlEl.className += ' ' + className
+    urlEl.id = url.split('.').join('-').split('/').join('_')
+    urlEl.innerHTML = url
+    urls.appendChild(urlEl)
+    if(urls.children.length > 5) urls.children[0].remove()
   }
 })
 
