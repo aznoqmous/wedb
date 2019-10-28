@@ -23,13 +23,16 @@ export default class Wedb{
   }
 
   init(){
-    this.getScript = new Req({url: './services/get.php', method: 'post'})
+    this.averageTime = 0
+    this.time = 0
     this.urls = []
     this.bufferedUrls = []
     this.entities = []
+    this.getScript = new Req({url: './services/get.php', method: 'post'})
     this.fakedom = document.createElement('div')
     document.body.appendChild(this.fakedom)
     this.fakedom.style.display = 'none'
+    console.log(this)
   }
 
   crawl(url){
@@ -40,20 +43,36 @@ export default class Wedb{
       let html = req.json
       this.extractLinks(html)
       let content = this.extractContent(html)
+      content.time = req.time
+      content.status = req.status
       this.entities.push(content)
-      if(this.config.onSuccess) this.config.onSuccess(req.config.datas.url)
+      this.averageTime = this.getAverageTime()
+      this.left = this.getTimeLeft()
+      if(this.config.onSuccess && req.config.datas) this.config.onSuccess(req, content)
     })
     .catch((req)=>{
-      if(this.config.onError) this.config.onError(req.config.datas.url)
+      if(this.config.onError && req.config.datas) this.config.onError(req)
     })
-    .finally(()=>{
+    .finally((req)=>{
       this.removeNextUrl()
       this.crawl()
-      if(this.config.onFinally) this.config.onFinally(req.config.datas.url)
+      if(this.config.onFinally) this.config.onFinally(url)
     })
   }
   get(url){
     return this.getScript.do({url: url})
+  }
+
+  getAverageTime(){
+      let time = 0
+      this.entities.map(entity => {
+        time += entity.time
+      })
+      return Math.round(time / this.entities.length)
+  }
+  getTimeLeft(){
+    let time = 0
+    return this.averageTime * this.bufferedUrls.length
   }
 
   extractLinks(html){
@@ -87,9 +106,9 @@ export default class Wedb{
   }
 
   addUrl(url){
-    console.log(url)
     url = url.split('?')[0]
     url = url.split('#')[0]
+    if(url.split(this.config.url).length <= 1) return false;
     if(url.split('.pdf').length > 1) return false;
     if(!this.urls.includes(url)) {
       this.bufferedUrls.push(url)

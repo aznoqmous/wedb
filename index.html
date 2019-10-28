@@ -5,29 +5,45 @@
     <title></title>
     <script src="dist/main.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <style media="screen">
-      #urls {
-        text-align: center;
+      #discovered {
+        text-align: right;
+      }
+      #crawled, #discovered {
         margin-bottom: 0.1rem;
       }
-      #urls > * {
-        opacity: 0;
-        transition: all 0.2s ease;
+      #crawled > *, #discovered > * {
+        width: 50%;
+        height: 1.4em;
+        opacity: 0.5;
         list-style: none;
+        font-size: 0.6rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        transition: all 0.2s ease;
       }
-      #urls > *:nth-child(1) { opacity: 0.1}
-      #urls > *:nth-child(2) { opacity: 0.2}
-      #urls > *:nth-child(3) { opacity: 0.3}
-      #urls > *:nth-child(4) { opacity: 0.4}
-      #urls > *:nth-child(5) { opacity: 0.5}
+      #crawled > *:nth-child(1) { opacity: 0.1}
+      #crawled > *:nth-child(2) { opacity: 0.2}
+      #crawled > *:nth-child(3) { opacity: 0.3}
+      #crawled > *:nth-child(4) { opacity: 0.4}
+      #crawled > *:nth-child(5) { opacity: 0.5}
+      #discovered > *:nth-child(1) { opacity: 0.1}
+      #discovered > *:nth-child(2) { opacity: 0.2}
+      #discovered > *:nth-child(3) { opacity: 0.3}
+      #discovered > *:nth-child(4) { opacity: 0.4}
+      #discovered > *:nth-child(5) { opacity: 0.5}
     </style>
   </head>
   <body>
     <div class="container">
       <h1>WeDB</h1>
-      <h2>The web, inside your db</h2>
+      <p>The web, inside your db</p>
       <div class="form-group">
-        <ul id="urls"></ul>
+        <div class="row">
+          <ul class="col-6" id="crawled"></ul>
+          <ul class="col-6" id="discovered"></ul>
+        </div>
         <input autofocus id="input" class="form-control" type="text" name="" value="" placeholder="Type in a URL and press ENTER to start crawling">
         <div class="progress">
           <div id="progress" class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
