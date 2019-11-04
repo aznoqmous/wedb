@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   window.w = new Wedb({
     selectors: {
+      organisationTitle : {
+        selector: 'div.Organization h4.titre'
+      }
       title: {
         selector: 'title'
       },
@@ -80,8 +83,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(discovered.children.length > 5) discovered.children[0].remove()
   }
 })
-
-
 
 HTMLElement.prototype.selector = function(){
   let element = this;

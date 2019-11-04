@@ -60,7 +60,10 @@ export default class Wedb{
     })
   }
   get(url){
-    return this.getScript.do({url: url})
+    return this.getScript.do({
+      url: url,
+      selectors: JSON.stringify(this.config.selectors)
+    })
   }
 
   getAverageTime(){
