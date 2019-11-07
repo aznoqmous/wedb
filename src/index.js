@@ -1,10 +1,11 @@
 import Wedb from './wedb.js'
 
 document.addEventListener('DOMContentLoaded', ()=>{
-  var start = Date.now()
-
   window.w = new Wedb({
     selectors: {
+      organisationTitle : {
+        selector: 'div.Organization h4.titre'
+      },
       title: {
         selector: 'title'
       },
@@ -54,10 +55,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
     }
   })
 
+
   input.addEventListener('keyup', (e)=>{
     if(e.key == "Enter") {
       w.crawl(input.value)
-      start = Date.now()
     }
   })
 
@@ -79,9 +80,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
     discovered.appendChild(urlEl)
     if(discovered.children.length > 5) discovered.children[0].remove()
   }
+
 })
-
-
 
 HTMLElement.prototype.selector = function(){
   let element = this;
