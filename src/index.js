@@ -80,7 +80,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
     discovered.appendChild(urlEl)
     if(discovered.children.length > 5) discovered.children[0].remove()
   }
-
 })
 
 HTMLElement.prototype.selector = function(){
