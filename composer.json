@@ -10,5 +10,8 @@
       "psr-4" : {
         "Aznoqmous\\Wedb\\" : "services/classes"
       }
+    },
+    "require-dev": {
+        "symfony/var-dumper": "^4.3"
     }
 }

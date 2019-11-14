@@ -5,24 +5,33 @@ require '../vendor/autoload.php';
 use Aznoqmous\Wedb\Req;
 use Aznoqmous\Wedb\Selector;
 
-if(!array_key_exists('url', $_POST)) return false;
+function input($key){
+  $input = false;
+  $input = (array_key_exists($key, $_POST)) ? $_POST[$key] : false;
+  if(!$input) $input = (array_key_exists($key, $_GET)) ? $_GET[$key] : false;
+  return $input;
+}
 
-$url = $_POST['url'];
-$selectors = json_decode($_POST['selectors']);
-$res = (new Req($url))->do();
 
-// get rid of links and scripts prevent imgs from loading
-$res = preg_replace("/<link.*?\/>/", '', $res);
-$res = preg_replace("/<script.*?\/script>/", '', $res);
-$res = preg_replace("/<style.*?\/style>/", '', $res);
-$res = preg_replace("/src/", "data-src", $res);
+$url = input('url');
+$selectors = input('selectors');
+
+$html = (new Req($url))->do();
 
 // NEXT
-// $s = new Selector($res);
-// foreach ($selectors as $selector) {
-//   $s->select($selector->selector);
-// }
+$s = new Selector($html);
 
-// $res = '';
-
-echo json_encode($res);
+$results = [];
+foreach(json_decode($selectors) as $objSelector){
+  $selector = $objSelector->selector;
+  $results[] = [
+    'selector' => $selector,
+    'results' => $s->select($selector)
+  ];
+}
+dump($s->extractLinks($html));
+// dump($results);
+// echo json_encode($results);
+// dump($selector->select("#our_price_display"));
+// dump($selector->select("#center_column .page-product-box .rte"));
+?>
