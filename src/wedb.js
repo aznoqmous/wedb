@@ -32,32 +32,37 @@ export default class Wedb{
     this.fakedom = document.createElement('div')
     document.body.appendChild(this.fakedom)
     this.fakedom.style.display = 'none'
-    console.log(this)
   }
 
   crawl(url){
     if(url) this.config.path = url;
     let currentUrl = url || this.getNextUrl()
+    if(!url && currentUrl) currentUrl = this.config.path + '/' + this.getNextUrl()
     if(currentUrl) this.get(currentUrl)
     .then((req)=>{
-      let html = req.json
-      this.extractLinks(html)
-      let content = this.extractContent(html)
+
+      this.extractLinks(req.json.links)
+
+      let content = this.extractContent(req.json.results)
       content.time = req.time
       content.status = req.status
       this.entities.push(content)
+
       this.averageTime = this.getAverageTime()
       this.left = this.getTimeLeft()
-      if(this.config.onSuccess && req.config.datas) this.config.onSuccess(req, content)
+
+      if(this.config.onSuccess && req.config && req.config.datas) this.config.onSuccess(req, content)
     })
     .catch((req)=>{
-      if(this.config.onError && req.config.datas) this.config.onError(req)
+      if(this.config.onError && req.config && req.config.datas) this.config.onError(req)
     })
     .finally((req)=>{
       this.removeNextUrl()
       this.crawl()
       if(this.config.onFinally) this.config.onFinally(url)
     })
+
+    else return false;
   }
   get(url){
     return this.getScript.do({
@@ -78,41 +83,37 @@ export default class Wedb{
     return this.averageTime * this.bufferedUrls.length
   }
 
-  extractLinks(html){
-    this.fakedom.innerHTML = html
-    let links = [].slice.call(this.fakedom.querySelectorAll('a'))
-    links.map( link => {
-      if( link.href.split(this.config.path).length > 1 ) this.addUrl(link.href)
-    })
-    this.fakedom.innerHTML = ''
-  }
-  extractContent(html){
-    this.fakedom.innerHTML = html
-    let content = {}
-    for(let key in this.config.selectors){
-      let selector = this.config.selectors[key]
-      let extract = this.fakedom.querySelector(selector.selector)
-      if(extract) {
-        let txt = ''
-        let contentValue = extract.innerText
-        if(selector.attr) contentValue = extract.getAttribute(selector.attr)
-        contentValue.split(' ').map( word => { if(word.length) txt += ' '+word } )
-        txt = txt.replace(/\n\:/g, ' :').replace(/\n /g, '\n').replace(/\n\n/g, '\n')
-        content[key] = txt
-        content.url = this.getNextUrl()
-      }
+  extractLinks(links){
+    for(let key in links){
+      let link = links[key]
+      if(
+        !link.match(/\..*?\//)
+        && !link.match('https://')
+        && !link.match('http://')
+      ) this.addUrl(link)
     }
-    if(content.url && this.config.onContent) this.config.onContent(content)
+  }
 
-    this.fakedom.innerHTML = ''
-    return content;
+  extractContent(contents){
+    let res = {}
+    let i = 0
+    for(let key in this.config.selectors){
+      let selector = this.config.selectors[key].selector
+      res[key] = contents[i].results
+      i++
+    }
+    if(this.config.onContent) this.config.onContent(res)
+    return res
   }
 
   addUrl(url){
     url = url.split('?')[0]
     url = url.split('#')[0]
+    if(url[0] == '/') url = url.slice(1)
     if(url.split(this.config.url).length <= 1) return false;
     if(url.split('.pdf').length > 1) return false;
+    if(url.split('.css').length > 1) return false;
+    if(url.split('.js').length > 1) return false;
     if(!this.urls.includes(url)) {
       this.bufferedUrls.push(url)
       this.urls.push(url)

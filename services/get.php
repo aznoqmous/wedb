@@ -24,14 +24,29 @@ $s = new Selector($html);
 $results = [];
 foreach(json_decode($selectors) as $objSelector){
   $selector = $objSelector->selector;
-  $results[] = [
-    'selector' => $selector,
-    'results' => $s->select($selector)
-  ];
+  if(array_key_exists('attr', $objSelector)){
+    // select attribute
+    $results[] = [
+      'selector' => $selector,
+      'results' => $s->selectTagAttribute($selector, $objSelector->attr)
+    ];
+  }
+  else {
+    // select content
+    $results[] = [
+      'selector' => $selector,
+      'results' => $s->select($selector)
+    ];
+  }
 }
-dump($s->extractLinks($html));
-// dump($results);
-// echo json_encode($results);
-// dump($selector->select("#our_price_display"));
-// dump($selector->select("#center_column .page-product-box .rte"));
+
+
+// dump($s->selectTagAttribute('#product_reference .editable', 'content'));
+dump($s->select('.our_price_display #our_price_display'));
+// dump($s->select('.editable'));
+
+echo json_encode([
+  'results' => $results,
+  'links' =>  $s->extractLinks($html)
+]);
 ?>

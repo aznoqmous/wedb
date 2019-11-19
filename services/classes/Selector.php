@@ -14,6 +14,68 @@ class Selector {
     $this->extract = self::extract($this->html);
   }
 
+  /*
+  * First : 1 selector per level
+  */
+  public static function selectorToRegexp($selector)
+  {
+    $selector =  preg_replace('/  /s', ' ', $selector);
+    $selectors = explode(' ', $selector);
+
+    $reg = '';
+    $arrReg = [];
+    foreach($selectors as $key => $selector)
+    {
+      if($selector[0] == '#') {
+        $selector = str_replace('#', '', $selector);
+        $selector = "id=\"$selector\"";
+      }
+      if($selector[0] == '.') {
+        $selector = str_replace('.', '', $selector);
+        $selector = "class=\"$selector\"";
+      }
+
+      if($key >= count($selectors) - 1){
+        $selector = "(.*?$selector.*?)>";
+      }
+
+      $arrReg[] = $selector;
+    }
+
+    $reg = implode('.*?>.*?<', $arrReg);
+    $reg = "/$reg/s";
+    return $reg;
+  }
+
+  public function selectTag($selector)
+  {
+    $reg = self::selectorToRegexp($selector);
+    preg_match_all($reg, $this->html, $matches);
+    $objTag = [];
+    if(!$matches || !$matches[1] || !$matches[1][0]) return false;
+    $tag = $matches[1][0];
+    $parts = explode(' ', $tag);
+
+    $objTag['tagname'] = $parts[0];
+
+    preg_match_all("/ (.*?)=\"(.*?)\"/s", $tag, $attributes);
+    foreach($attributes as $key => $attr)
+    {
+      $attrName = $attributes[1][$key];
+      $attrValue = $attributes[2][$key];
+      $objTag[$attrName] = $attrValue;
+    }
+    return $objTag;
+  }
+
+  public function selectTagAttribute($selector, $attribute)
+  {
+      $objTag = $this->selectTag($selector);
+      if(!$objTag || !array_key_exists($attribute, $objTag)) return false;
+      return $objTag[$attribute];
+  }
+
+
   public static function clean($html)
   {
     $html = preg_replace("/<\!DOCTYPE.*?>/s", '', $html);
@@ -38,13 +100,13 @@ class Selector {
     $tag = "#HTMLTAG# : ";
     $splitTag = "#SPLITTAG# : ";
     $html = preg_replace('/<!--.*?-->/s', '', $html);
-    $html = preg_replace('/  /', ' ', $html);
-    $html = preg_replace('/\r\n|\r|\n/', ' ', $html);
-    $html = preg_replace('/<\//', "$splitTag$tag$afterTag", $html);
-    $html = preg_replace('/\/>/', "$splitTag$tag$afterTag", $html);
-    $html = preg_replace('/</', "$splitTag$tag$beforeTag", $html);
-    $html = preg_replace('/>/', "$splitTag", $html);
-    $html = preg_replace('/  /', ' ', $html);
+    $html = preg_replace('/  /s', ' ', $html);
+    $html = preg_replace('/\r\n|\r|\n/s', ' ', $html);
+    $html = preg_replace('/<\//s', "$splitTag$tag$afterTag", $html);
+    $html = preg_replace('/\/>/s', "$splitTag$tag$afterTag", $html);
+    $html = preg_replace('/</s', "$splitTag$tag$beforeTag", $html);
+    $html = preg_replace('/>/s', "$splitTag", $html);
+    $html = preg_replace('/  /s', ' ', $html);
     $html = trim($html);
 
 
@@ -60,11 +122,11 @@ class Selector {
     }, $arrTags);
 
     $beforeTags = array_filter($arrTags, function ($a) use ($beforeTag) {
-      return (count(explode($beforeTag, $a)) > 1);
+      return self::match($beforeTag, $a);
     });
 
-    $contents = array_filter($arrTags, function ($a) use ($tag) {
-      return (count(explode($tag, $a)) <= 1);
+    $contents = array_filter($arrTags, function ($a) use ($tag, $beforeTag) {
+      return !self::match($tag, $a);
     });
 
     $selectors = [];
@@ -115,8 +177,24 @@ class Selector {
       }
     }
 
+    $contents = array_values($contents);
+
+    // AGGREGATE CONTENTS
+    // $lastSelector = '';
+    // $lastKey = 0;
+    // foreach($selectors as $key => $selector){
+    //   if(strlen($lastSelector) && self::match($selector, $lastSelector)) {
+    //     $contents[$key] = $contents[$lastKey] . ' ' . $contents[$key];
+    //   }
+    //   if(strlen($lastSelector) && self::match($lastSelector, $selector)) {
+    //     $contents[$key] .= ' ' . $contents[$lastKey];
+    //   }
+    //   $lastSelector = $selector;
+    //   $lastKey = $key;
+    // }
+
     return [
-      'contents' => array_values($contents),
+      'contents' => $contents,
       'selectors' => $selectors
     ];
   }
@@ -125,6 +203,12 @@ class Selector {
   {
     return (count(explode($pattern, $string)) > 1);
   }
+
+  public static function replace($pattern, $replacement, $string)
+  {
+    return implode($replacement, explode($pattern, $string));
+  }
+
 
   public function extractLinks($html)
   {
@@ -142,9 +226,20 @@ class Selector {
   {
     $specialChars = ['#', '.', '>'];
     $selector = str_replace(' ', '.*?', $selector);
+
+    $trailSelector = explode(' ', $selector);
+    $trailSelector = $trailSelector[count($trailSelector)-1];
+
     $matches = array_filter($this->extract['selectors'], function($str) use ($selector, $specialChars){
-      return ( preg_match("/$selector/", $str, $matches) );
+      return self::match($selector, $str);
     });
+
+    $matches = array_filter($matches, function($match) use ($trailSelector) {
+      $trailMatch = explode('>', $match);
+      $trailMatch = $trailMatch[count($trailMatch)-1];
+      return self::match($trailSelector, $trailMatch);
+    });
+
     $results = [];
     foreach($matches as $key => $match){
       $results[] = [

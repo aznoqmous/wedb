@@ -3,19 +3,26 @@ import Wedb from './wedb.js'
 document.addEventListener('DOMContentLoaded', ()=>{
   window.w = new Wedb({
     selectors: {
-      organisationTitle : {
-        selector: 'div.Organization h4.titre'
+      price: {
+        selector: '.our_price_display #our_price_display'
       },
-      title: {
-        selector: 'title'
-      },
-      description: {
-        selector: 'meta[type="description"]',
+      reference: {
+        selector: '#product_reference .editable',
         attr: 'content'
-      },
-      alt: {
-        selector: 'h1'
       }
+      // organisationTitle : {
+      //   selector: 'div.Organization h4.titre'
+      // },
+      // title: {
+      //   selector: 'title'
+      // },
+      // description: {
+      //   selector: 'meta[type="description"]',
+      //   attr: 'content'
+      // },
+      // alt: {
+      //   selector: 'h1'
+      // }
     },
     bannedTags: 'script,link',
     onAddUrl: (url)=> {
@@ -36,10 +43,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
       pagesCrawl.innerHTML += ` - ${w.urls.length} pages total <br>`
     },
     onSuccess: (req)=>{
-      addCrawled('<span class="badge badge-success"> ' + req.status + '</span>' + req.config.datas.url)
+      addCrawled('<span class="badge badge-success">' + req.status + '</span> ' + req.config.datas.url)
     },
     onError: (req)=>{
-      addCrawled('<span class="badge badge-danger"> ' + req.status + '</span>' + req.config.datas.url)
+      addCrawled('<span class="badge badge-danger">' + req.status + '</span> ' + req.config.datas.url)
     },
     onFinally: (url)=>{
       // addCrawled(w.getNextUrl()+'...')
