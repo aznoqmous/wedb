@@ -1,6 +1,7 @@
 import Wedb from './wedb.js'
 
 document.addEventListener('DOMContentLoaded', ()=>{
+  let save = new Req({url: '/services/save.php', method: 'POST'})
   window.w = new Wedb({
     selectors: {
       name: {
@@ -31,17 +32,23 @@ document.addEventListener('DOMContentLoaded', ()=>{
       let ratio = ( w.urls.length - w.bufferedUrls.length ) / w.urls.length
       progress.style.width = ratio * 100 + '%'
       progress.innerHTML = Math.round(ratio * 100) + '%'
-      pagesCrawl.innerHTML = `${w.urls.length - w.bufferedUrls.length} pages crawled`
+
+      pagesCrawl.innerHTML = ''
+      pagesCrawl.innerHTML += `${w.urls.length - w.bufferedUrls.length} pages crawled`
       pagesCrawl.innerHTML += ` - ${w.bufferedUrls.length} pages left`
       pagesCrawl.innerHTML += ` - ${w.urls.length} pages total <br>`
+      pagesCrawl.innerHTML += `${w.config.path}/${w.getNextUrl()}<br>`
     },
     onRemoveUrl: (url)=>{
       let ratio = ( w.urls.length - w.bufferedUrls.length ) / w.urls.length
       progress.style.width = ratio * 100 + '%'
       progress.innerHTML = Math.round(ratio * 100) + '%'
-      pagesCrawl.innerHTML = `${w.urls.length - w.bufferedUrls.length} pages crawled`
+
+      pagesCrawl.innerHTML = ''
+      pagesCrawl.innerHTML += `${w.urls.length - w.bufferedUrls.length} pages crawled`
       pagesCrawl.innerHTML += ` - ${w.bufferedUrls.length} pages left`
       pagesCrawl.innerHTML += ` - ${w.urls.length} pages total <br>`
+      pagesCrawl.innerHTML += `${w.config.path}/${w.getNextUrl()}<br>`
     },
     onSuccess: (req)=>{
       addCrawled('<span class="badge badge-success">' + req.status + '</span> ' + req.config.datas.url)
@@ -56,12 +63,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
     },
     onContent: (content)=>{
       let entity = ''
-      console.log(content)
       if(!content.price.length) return false;
+      save.do(content)
       for(let key in content){
         entity += `<strong>${key}</strong>: ${content[key]}<br>`
       }
-      entities.innerHTML += `<li>${entity}</li>`
+      entities.innerHTML = `<li>${entity}</li>` + entities.innerHTML
     }
   })
 

@@ -17,15 +17,29 @@ class Selector {
   public static function clean($html)
   {
     $html = preg_replace("/<\!DOCTYPE.*?>/s", '', $html);
-    $html = preg_replace("/<link.*?>/s", '', $html);
-    $html = preg_replace("/<meta.*?>/s", '', $html);
-    $html = preg_replace("/<br.*?>/s", '', $html);
+    $html = self::cleanSingleTags($html);
     $html = preg_replace("/<script.*?\/script>/s", '', $html);
     $html = preg_replace("/<style.*?style>/s", '', $html);
     $html = preg_replace("/src\=/s", "data-src=", $html);
     $html = implode("\n", array_filter(explode("\n", $html), function($el){
       return (strlen($el));
     }));
+    return $html;
+  }
+
+  public static function cleanSingleTags($html)
+  {
+    $singleTags = [
+      'link',
+      'meta',
+      'br',
+      'hr',
+      'base',
+      'input'
+    ];
+    foreach ($singleTags as $tag) {
+      $html = preg_replace("/<$tag.*?>/s", '', $html);
+    }
     return $html;
   }
 

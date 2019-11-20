@@ -4,17 +4,10 @@ require '../vendor/autoload.php';
 
 use Aznoqmous\Wedb\Req;
 use Aznoqmous\Wedb\Selector;
+use Aznoqmous\Wedb\Params;
 
-function input($key){
-  $input = false;
-  $input = (array_key_exists($key, $_POST)) ? $_POST[$key] : false;
-  if(!$input) $input = (array_key_exists($key, $_GET)) ? $_GET[$key] : false;
-  return $input;
-}
-
-
-$url = input('url');
-$selectors = input('selectors');
+$url = Params::input('url');
+$selectors = Params::input('selectors');
 
 $html = (new Req($url))->do();
 

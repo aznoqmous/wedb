@@ -52,6 +52,7 @@ export default class Wedb{
       content.time = req.time
       content.status = req.status
       content.url = req.config.datas.url
+      content.id = this.entities.length
       if(this.config.onContent) this.config.onContent(content)
       this.entities.push(content)
 
