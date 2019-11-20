@@ -24,6 +24,7 @@ $s = new Selector($html);
 $results = [];
 foreach(json_decode($selectors) as $objSelector){
   $selector = $objSelector->selector;
+
   if(array_key_exists('attr', $objSelector)){
     // select attribute
     $results[] = [
@@ -35,18 +36,22 @@ foreach(json_decode($selectors) as $objSelector){
     // select content
     $results[] = [
       'selector' => $selector,
-      'results' => $s->select($selector)
+      'results' => $s->selectAll($selector)
     ];
   }
 }
 
-
 // dump($s->selectTagAttribute('#product_reference .editable', 'content'));
-dump($s->select('.our_price_display #our_price_display'));
-// dump($s->select('.editable'));
+// dump($s->selectAll('#our_price_display'));
+// dump($s->selectAll("#short_description_content p"));
+// dump($s->selectAll("#product_condition .editable"));
+// dump($s->selectAll(".page-product-box > .rte > p"));
+// dump($s->selectAll(".navigation_page span title"));
+// dump($s->extract);
 
 echo json_encode([
   'results' => $results,
   'links' =>  $s->extractLinks($html)
 ]);
+
 ?>

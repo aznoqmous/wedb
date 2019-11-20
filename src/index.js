@@ -3,26 +3,28 @@ import Wedb from './wedb.js'
 document.addEventListener('DOMContentLoaded', ()=>{
   window.w = new Wedb({
     selectors: {
+      name: {
+        selector: 'h1[itemprop="name"]'
+      },
       price: {
         selector: '.our_price_display #our_price_display'
       },
       reference: {
         selector: '#product_reference .editable',
         attr: 'content'
+      },
+      short_description: {
+        selector: '#short_description_content p'
+      },
+      description: {
+        selector: '.page-product-box > .rte > p'
+      },
+      condition: {
+        selector: '#product_condition .editable'
+      },
+      categories: {
+        selector: '.navigation_page span title'
       }
-      // organisationTitle : {
-      //   selector: 'div.Organization h4.titre'
-      // },
-      // title: {
-      //   selector: 'title'
-      // },
-      // description: {
-      //   selector: 'meta[type="description"]',
-      //   attr: 'content'
-      // },
-      // alt: {
-      //   selector: 'h1'
-      // }
     },
     bannedTags: 'script,link',
     onAddUrl: (url)=> {
@@ -32,7 +34,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
       pagesCrawl.innerHTML = `${w.urls.length - w.bufferedUrls.length} pages crawled`
       pagesCrawl.innerHTML += ` - ${w.bufferedUrls.length} pages left`
       pagesCrawl.innerHTML += ` - ${w.urls.length} pages total <br>`
-      // addDiscovered(url)
     },
     onRemoveUrl: (url)=>{
       let ratio = ( w.urls.length - w.bufferedUrls.length ) / w.urls.length
@@ -50,18 +51,19 @@ document.addEventListener('DOMContentLoaded', ()=>{
     },
     onFinally: (url)=>{
       // addCrawled(w.getNextUrl()+'...')
-      pagesCrawl.innerHTML += 'average' + w.averageTime +'ms load'
-      pagesCrawl.innerHTML += Math.round(w.left / 1000) + 's left'
+      pagesCrawl.innerHTML += ' average ' + w.averageTime +'ms'
+      pagesCrawl.innerHTML += ' load ' + Math.round(w.left / 1000) + 's left'
     },
     onContent: (content)=>{
       let entity = ''
+      console.log(content)
+      if(!content.price.length) return false;
       for(let key in content){
-        entity += `${key}: ${content[key]}<br>`
+        entity += `<strong>${key}</strong>: ${content[key]}<br>`
       }
       entities.innerHTML += `<li>${entity}</li>`
     }
   })
-
 
   input.addEventListener('keyup', (e)=>{
     if(e.key == "Enter") {

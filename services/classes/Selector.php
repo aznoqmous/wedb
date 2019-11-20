@@ -19,6 +19,7 @@ class Selector {
     $html = preg_replace("/<\!DOCTYPE.*?>/s", '', $html);
     $html = preg_replace("/<link.*?>/s", '', $html);
     $html = preg_replace("/<meta.*?>/s", '', $html);
+    $html = preg_replace("/<br.*?>/s", '', $html);
     $html = preg_replace("/<script.*?\/script>/s", '', $html);
     $html = preg_replace("/<style.*?style>/s", '', $html);
     $html = preg_replace("/src\=/s", "data-src=", $html);
@@ -90,6 +91,7 @@ class Selector {
             $selector = str_replace($afterTag, '', $selector);
 
             $matches = [];
+            // replace ids by #
             preg_match_all("/class=\"(.*?)\"/", $selector, $matches);
             if(count($matches)){
               foreach($matches[0] as $i => $match){
@@ -99,6 +101,8 @@ class Selector {
                   $selector = str_replace(' .', '.', $selector);
               }
             }
+
+            // replace classes by .
             preg_match_all("/id=\"(.*?)\"/", $selector, $matches);
             if(count($matches)){
               foreach($matches[0] as $i => $match){
@@ -108,6 +112,10 @@ class Selector {
                   $selector = str_replace(' #', '#', $selector);
               }
             }
+
+            // rewrite attributes to [key="value"]
+            $selector = preg_replace('/ ([A-z]*?=\".*?\")/s', "[$1]",$selector);
+
             $selectors[] = $selector;
             break;
           }
@@ -116,20 +124,6 @@ class Selector {
     }
 
     $contents = array_values($contents);
-
-    // AGGREGATE CONTENTS
-    $lastSelector = '';
-    $lastKey = 0;
-    foreach($selectors as $key => $selector){
-      if(strlen($lastSelector) && self::match($selector, $lastSelector)) {
-        $contents[$key] = $contents[$lastKey] . ' ' . $contents[$key];
-      }
-      if(strlen($lastSelector) && self::match($lastSelector, $selector)) {
-        $contents[$key] .= ' ' . $contents[$lastKey];
-      }
-      $lastSelector = $selector;
-      $lastKey = $key;
-    }
 
     return [
       'contents' => $contents,
@@ -165,7 +159,7 @@ class Selector {
     return $links;
   }
 
-  public function select($selector)
+  public function selectAll($selector)
   {
 
     $specialChars = ['#', '.', '>'];
@@ -173,13 +167,22 @@ class Selector {
     $trailSelector = explode(' ', $selector);
     $trailSelector = $trailSelector[count($trailSelector)-1];
 
+    $selector = str_replace('"', '\"', $selector);
+    $selector = str_replace('[', '\[', $selector);
+    $selector = str_replace(']', '\]', $selector);
+
+    $selector = str_replace('  ', ' ', $selector);
+    $selector = str_replace('*', '', $selector);
+    $selector = str_replace(' >', '>', $selector);
+    $selector = str_replace('> ', '>', $selector);
     $selector = str_replace(' ', '.*?', $selector);
+    $selector = str_replace('>', '[^ ]*? > [^ ]*?', $selector);
 
     $matches = array_filter($this->extract['selectors'], function($str) use ($selector){
       return self::reg_match($selector, $str);
     });
 
-    $matches = array_filter($matches, function($match) use ($trailSelector) {
+    if($trailSelector != '*') $matches = array_filter($matches, function($match) use ($trailSelector) {
       $trailMatch = explode('>', $match);
       $trailMatch = $trailMatch[count($trailMatch)-1];
       return self::match($trailSelector, $trailMatch);
@@ -187,12 +190,16 @@ class Selector {
 
     $results = [];
     foreach($matches as $key => $match){
-      $results[] = [
-        'selector' => $match,
-        'content' => $this->extract['contents'][$key]
-      ];
+      $results[] = $this->extract['contents'][$key];
     }
     return $results;
+  }
+
+  public function select($selector)
+  {
+    $res = $this->selectAll($selector);
+    if(!count($res)) return false;
+    return $res[0];
   }
 
   /**
